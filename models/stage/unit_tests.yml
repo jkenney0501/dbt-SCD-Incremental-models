@@ -1,0 +1,26 @@
+version: 2
+
+unit tests:
+  - name: test_order_status_cleanup
+    description: test column values in CASE statment
+    model: stg_orders
+    given:
+      - input: source('jaffle_shop', 'orders')
+        rows: 
+          - {id:1, status:returned}
+          - {id:2, status:completed}
+          - {id:3, status:return_pending}
+          - {id:4, status:shipped}
+          - {id:5, status:placed}
+          - {id:6, status:pending}
+    expect:
+      rows:
+        - {order_id:1, status:returned}
+        - {order_id:2, status:completed}
+        - {order_id:3, status:return_pending}
+        - {order_id:4, status:shipped}
+        - {order_id:5, status:placed}
+        - {order_id:6, status:pending}
+
+      
+   

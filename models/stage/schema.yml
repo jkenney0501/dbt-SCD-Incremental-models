@@ -1,0 +1,47 @@
+# schema generic tests
+version: 2
+
+models: 
+  # customers table
+  - name: stg_customers
+    description: customers table, one record per customer
+    columns:
+      - name: customer_id
+        description: primary key for customers table
+        tests:
+          - not_null
+          - unique
+      - name: first_order_date
+        description: NULL when a customer has not yet placed an order.
+
+# orders table
+  - name: stg_orders
+    description: This model cleans up customer data
+    columns:
+      - name: order_id
+        description: Primary key of the orders table
+        tests:
+          - unique
+          - not_null
+
+      - name: status
+        description: Note that the status can change over time
+        tests:
+          - accepted_values:
+              values: ['placed', 'shipped', 'completed', 'return_pending', 'returned']
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id
+   
+  # stripe.payment table
+  - name: stg_payment
+    description: stage table for payments
+    columns:
+      - name: id
+        description: primary key for payment table
+        tests:
+          - not_null 
+          - unique 
