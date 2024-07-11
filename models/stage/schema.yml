@@ -16,7 +16,7 @@ models:
 
 # orders table
   - name: stg_orders
-    description: This model cleans up customer data
+    description: This model cleans up order data
     columns:
       - name: order_id
         description: Primary key of the orders table
