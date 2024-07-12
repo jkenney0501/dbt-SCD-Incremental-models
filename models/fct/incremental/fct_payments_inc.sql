@@ -14,18 +14,19 @@
 
 
 -- create the table and add incrmental logic
+-- this cte references the source data which is perefectly fine to do.
 WITH 
     incremental AS(
         SELECT 
-        id AS payment_id, 
-        orderid AS order_id,
-        amount,
-        _batched_at
+            id AS payment_id, 
+            orderid AS order_id,
+            amount,
+            _batched_at
         FROM {{ ref('stg_payment') }}
      
         {% if is_incremental() %}
 
-        WHERE _batched_at >= (SELECT MAX(_batched_at) FROM {{ this }} )
+            WHERE _batched_at >= (SELECT MAX(_batched_at) FROM {{ this }} )
 
         {% endif %}
 )
