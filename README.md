@@ -208,7 +208,8 @@ SELECT *
 FROM ANALYTICS.DBT_JKENNEY.DIM_CUSTOMERS_SCD
 WHERE customer_id =  1
 ```
-** add screen shot**
+- You will now see a cleaned up version of an SCD with a **is_currrent** flag and the valid_to date as 2099-01-01 
+which make it easier to query using a range.
 
 
 
@@ -262,6 +263,7 @@ ORDER BY id DESC
 -- run dbt run --full-refresh
 
 -- check fact table in SNF, the run is quick b/s it adds only 1 row! Repeat above as needed.
+-- you will see order id 121 is added.
 SELECT *
 FROM ANALYTICS.DBT_JKENNEY.FCT_PAYMENTS_INC
 ORDER BY payment_id DESC
