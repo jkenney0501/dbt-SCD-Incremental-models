@@ -129,7 +129,7 @@ FROM dim_transform_valid_to
 ```sql
 SELECT * FROM ANALYTICS.DBT_JKENNEY.DIM_MOCK_ORDERS_SCD
 ```
-**screenshot OF RESULTS HERE**
+![Alt Text](https://github.com/jkenney0501/dbt-SCD-Incremental-models/blob/main/assets/timestamp_scd.png)
 
 **Note:** If you want to start this process over, you will need to drop the snapshot table by running the following in Snowflake. 
 This will force dbt to create a new snapshot table in step 4. Or you can keep adding records to capture new changes.
@@ -212,7 +212,7 @@ WHERE customer_id =  1
 ```
 - You will now see a cleaned up version of an SCD with a **is_currrent** flag and the valid_to date as 2099-01-01 
 which make it easier to query using a range.
-
+![Alt Text](https://github.com/jkenney0501/dbt-SCD-Incremental-models/blob/main/assets/CHECK_STRATEGY_SCD.png))
 
 
 
