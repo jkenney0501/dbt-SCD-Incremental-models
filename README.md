@@ -223,7 +223,8 @@ WHERE customer_id =  1
 ```sql
 {{ config(
     materialized = 'incremental',
-    unique_key = 'page_view_id'
+    unique_key = 'page_view_id',
+    on_schema_change ='fail'
 ) }}
 
 -- create the table and add incrmental logic
