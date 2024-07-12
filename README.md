@@ -6,9 +6,10 @@ The other example is to materialize an incremental model. This is essentially a 
 demonstrate the incrmenting appraoch. Typiclly, this is best used for large table and most often a rebuild is best if you can get away with it.
 
 ## dbt snapshots - Type 2 Slowly Changing Dimensions 
-- why we use 
-- tow strtegies in dbt 
-- briefly cover check cols strategy 
+We use type 2 SCD's to capture the history of changes. A type 2 will track the entore history while remaining idempotent which is very important for 
+building good data pieplines. Below covers the two strategies that dbt uses, timestamp and check. 
+Timestamp is the preferred methid if we have a reloable timestamp column but we can alos employ the check strategy.
+Both methods are covwered below as is incremental modeling. 
 
 **Steps to create an SCD:**
 - **(In Snowflake)** Create a table called mock_orders in your development schema. You will have to replace dbt_kcoapman in the snippet below.
@@ -90,10 +91,43 @@ COMMIT;
 ```sql
 SELECT * FROM analytics.dbt_jkenney_snapshot.mock_orders
 ```
+- Now we create the final dimension where we transform the raw(ish) SCD schema to have an is_current flag and fill in NULLS with a future date(way in the future)
+ 
+Here is how I did this section:
+```sql
+-- transforms the dim with alias and captrures the is current falg by using the null in dbt valid to
+WITH 
+    dim_transformed_scd AS(
+        SELECT 
+            order_id,
+            status,
+            dbt_updated_at AS updated_at,
+            dbt_valid_from AS valid_from,
+            dbt_valid_to AS valid_to,
+            CASE WHEN dbt_valid_to IS NULL THEN 1 ELSE 0 END AS is_current
+        FROM {{ ref('scd_mock_orders') }}
+),
+--  fills the null of dbt valid to with a date far in the future
+-- this happens AFTER the is current flag is defined so it does not over write it.
+dim_transform_valid_to AS(
+    SELECT *
+    FROM dim_transformed_scd
+)
 
-screenshot this
-
-create dim with transformed showing valid to/from and is current flag
+SELECT 
+    order_id,
+    status,
+    valid_from,
+    CASE WHEN valid_to IS NULL THEN '2099-01-01' ELSE valid_to END AS valid_to,
+    updated_at,
+    is_current
+FROM dim_transform_valid_to
+```
+- check this transformed dimesion:
+```sql
+SELECT * FROM ANALYTICS.DBT_JKENNEY.DIM_MOCK_ORDERS_SCD
+```
+**screenshot OF RESULTS HERE**
 
 **Note:** If you want to start this process over, you will need to drop the snapshot table by running the following in Snowflake. 
 This will force dbt to create a new snapshot table in step 4. Or you can keep adding records to capture new changes.
@@ -102,34 +136,137 @@ This will force dbt to create a new snapshot table in step 4. Or you can keep ad
 DROP TABLE analytics.dbt_jkenney_snapshot.mock_orders
 ```
 
-## Incremental Models
+### Using the Check Columns strategy
+Given our customers source does not have any time stamp that we can use, we will check for chnages in any of the columns to update that row as current
+if there is a change. To do this we have top modify our config a bit as I did below:
+
+**Note:** I am using the source here b/c it is part of my loaded data and I would typically always do this but I chose to follow the dbt guide for the above timestamp strategy which did not use a source.
+
+```sql
+{% snapshot scd_check_customers %}
+
+{{
+    config(
+      target_schema='dbt_jkenney_snapshot',
+      strategy='check',
+      unique_key='id',
+      check_cols='all'
+    )
+}}
+
+SELECT * FROM {{ source('jaffle_shop', 'customers') }}
+
+{% endsnapshot %}
+```
+- Check the table.
+```sql 
+SELECT * FROM ANALYTICS.DBT_JKENNEY_SNAPSHOT.SCD_CHECK_CUSTOMERS
+```
+
+- Now create the dim table as above with the is current flag as seen below.
+```sql 
+WITH 
+    dim_cust_transformed_scd AS(
+        SELECT 
+            id AS customer_id,
+            first_name,
+            last_name,
+            dbt_updated_at AS updated_at,
+            dbt_valid_from AS valid_from,
+            dbt_valid_to AS valid_to,
+            CASE WHEN dbt_valid_to IS NULL THEN 1 ELSE 0 END AS is_current
+        FROM {{ ref('scd_check_customers') }}
+),
+--  fills the null of dbt valid to with a date far in the future, this happens AFTER the is current flag is defined so it does not over write it.
+dim_cust_transform_valid_to AS(
+    SELECT 
+        customer_id,
+        first_name,
+        last_name,
+        valid_from,
+        CASE WHEN valid_to IS NULL THEN '2099-01-01' ELSE valid_to END AS valid_to,
+        updated_at,
+        is_current
+    FROM dim_cust_transformed_scd
+)
+
+SELECT *
+FROM dim_cust_transform_valid_to
+```
+
+- make a change in snowflake to the source data for a customers name where id =  1 change first_name to Mike
+
+```sql
+UPDATE RAW.JAFFLE_SHOP.CUSTOMERS
+SET first_name = 'Mike'
+WHERE id = 1
+```
+- Check the results
+
+```sql
+SELECT * 
+FROM ANALYTICS.DBT_JKENNEY.DIM_CUSTOMERS_SCD
+WHERE customer_id =  1
+```
+** add screen shot**
 
 
 
-## Start with config
+
+### Incremental Models
+
+
+
+- Start with configuring the materialization as Incremental
+- In the same sql file, add the CTE below and thats really it for incremental models!
 
 ```sql
 {{ config(
     materialized = 'incremental',
     unique_key = 'page_view_id'
 ) }}
+
+-- create the table and add incrmental logic
+-- this cte references the source data which is perefectly fine to do.
+WITH 
+    incremental AS(
+        SELECT 
+            id AS payment_id, 
+            orderid AS order_id,
+            amount,
+            _batched_at
+        FROM {{ ref('stg_payment') }}
+     
+        {% if is_incremental() %}
+
+            WHERE _batched_at >= (SELECT MAX(_batched_at) FROM {{ this }} )
+
+        {% endif %}
+)
+
+SELECT * 
+FROM incremental
 ```
 
-### Using the starter project
+- Insert some new data into the raw source table in Snowflake
+```sql
+INSERT INTO RAW.STRIPE.PAYMENT (id, orderid, paymentmethod, status, amount, _batched_at)
+VALUES (121, 100, 'credit_card', 'success', 5000, current_timestamp)
 
-Try running the following commands:
-- dbt run
-- dbt test
+-- CHECK RAW
+SELECT *
+FROM RAW.STRIPE.PAYMENT
+ORDER BY id DESC
 
+-- run dbt run --full-refresh
 
-
-
-
-
-
-
-
-
+-- check fact table in SNF, the run is quick b/s it adds only 1 row! Repeat above as needed.
+SELECT *
+FROM ANALYTICS.DBT_JKENNEY.FCT_PAYMENTS_INC
+ORDER BY payment_id DESC
+```
+- Note, this is essentially the fact table, it cleans up some cols from the source that it references (elimiates them) and aliases some columns.
+- You can also add surrogate keys but that was not neccesary for purposes of this demonstration.
 
 
 
