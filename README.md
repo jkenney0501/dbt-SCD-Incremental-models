@@ -5,6 +5,8 @@ It exapands further to simulate how we would create a production dimesnion by tr
 The other example is to materialize an incremental model. This is essentially a mock fact table and a few rows are added to 
 demonstrate the incrmenting appraoch. Typiclly, this is best used for large table and most often a rebuild is best if you can get away with it.
 
+Get the [jaffle_shop DDL](https://github.com/jkenney0501/dbt-SCD-Incremental-models/blob/main/analyses/jaffle_set_up_SNF_DDL.md) in the Analyses folder.
+
 ## dbt snapshots - Type 2 Slowly Changing Dimensions 
 We use type 2 SCD's to capture the history of changes. A type 2 will track the entore history while remaining idempotent which is very important for 
 building good data pieplines. Below covers the two strategies that dbt uses, timestamp and check. 
