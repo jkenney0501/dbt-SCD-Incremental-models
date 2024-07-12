@@ -212,7 +212,7 @@ WHERE customer_id =  1
 ```
 - You will now see a cleaned up version of an SCD with a **is_currrent** flag and the valid_to date as 2099-01-01 
 which make it easier to query using a range.
-![Alt Text](https://github.com/jkenney0501/dbt-SCD-Incremental-models/blob/main/assets/CHECK_STRATEGY_SCD.png))
+![Alt Text](https://github.com/jkenney0501/dbt-SCD-Incremental-models/blob/main/assets/CHECK_STRATEGY_SCD.png)
 
 
 
