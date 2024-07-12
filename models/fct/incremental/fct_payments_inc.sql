@@ -9,7 +9,7 @@
 {{ config(
     materialized = 'incremental', 
     unique_key = 'payment_id',
-    on_schema_change = 'fail'
+    on_schema_change ='fail'
 ) }}
 
 
