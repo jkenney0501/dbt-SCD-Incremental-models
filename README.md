@@ -1,14 +1,16 @@
 ## Incremental Models and Type 2 SCD's in dbt
-
-## Type 2 Slowly Changing Dimensions
 This first set of code captures how to create and maintain a tpye 2 SCD in dbt. 
 It exapands further to simulate how we would create a production dimesnion by transforning and adding the is_current flag.
 
-The other example is to materialize an incrmental model. This is essentially a mock fact table and a few rows are added to 
+The other example is to materialize an incremental model. This is essentially a mock fact table and a few rows are added to 
 demonstrate the incrmenting appraoch. Typiclly, this is best used for large table and most often a rebuild is best if you can get away with it.
 
+## dbt snapshots - Type 2 Slowly Changing Dimensions 
+- why we use 
+- tow strtegies in dbt 
+- briefly cover check cols strategy 
 
-## Snapshots
+**Steps to create an SCD:**
 - **(In Snowflake)** Create a table called mock_orders in your development schema. You will have to replace dbt_kcoapman in the snippet below.
 
 ```sql
@@ -102,6 +104,16 @@ DROP TABLE analytics.dbt_jkenney_snapshot.mock_orders
 
 ## Incremental Models
 
+
+
+## Start with config
+
+```sql
+{{ config(
+    materialized = 'incremental',
+    unique_key = 'page_view_id'
+) }}
+```
 
 ### Using the starter project
 
