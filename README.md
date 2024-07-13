@@ -57,8 +57,9 @@ select * from analytics.{{target.schema}}.mock_orders
 {% endsnapshot %}
 
 ```
-- **Note:** The above code creates a separate schema for the type 2 SCD's once a change occurs.
+
 - **(In dbt Cloud)** Run snapshots by executing **dbt snapshot**.
+- **Note:** The above code creates a separate schema for the type 2 SCD's once a change occurs.
 
 - **(In dbt Cloud)** Run the following snippet in a statement tab to see the current snapshot table.
 
@@ -127,8 +128,12 @@ dim_transform_valid_to AS(
 
 SELECT *
 FROM dim_transform_valid_to
+
+- enter **dbt run** to build model in DWH. Optional-(dbt run--select <model_name>) 
+
 ```
 - check this transformed dimesion:
+
 ```sql
 SELECT * FROM ANALYTICS.DBT_JKENNEY.DIM_MOCK_ORDERS_SCD
 ```
@@ -163,6 +168,8 @@ SELECT * FROM {{ source('jaffle_shop', 'customers') }}
 
 {% endsnapshot %}
 ```
+-- enter **dbt snapshot**
+
 - Check the table.
 ```sql 
 SELECT * FROM ANALYTICS.DBT_JKENNEY_SNAPSHOT.SCD_CHECK_CUSTOMERS
@@ -198,7 +205,7 @@ dim_cust_transform_valid_to AS(
 SELECT *
 FROM dim_cust_transform_valid_to
 ```
-
+- enter **dbt run** to build model in DWH.
 - make a change in snowflake to the source data for a customers name where id =  1 change first_name to Mike
 
 ```sql
@@ -220,7 +227,6 @@ which make it easier to query using a range.
 
 
 ### Incremental Models
-
 
 
 - Start with configuring the materialization as Incremental
