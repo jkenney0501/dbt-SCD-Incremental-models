@@ -128,10 +128,8 @@ dim_transform_valid_to AS(
 
 SELECT *
 FROM dim_transform_valid_to
-
-- enter **dbt run** to build model in DWH. Optional-(dbt run--select <model_name>) 
-
 ```
+- enter **dbt run** to build model in DWH. Optional-(dbt run--select <model_name>) 
 - check this transformed dimesion:
 
 ```sql
