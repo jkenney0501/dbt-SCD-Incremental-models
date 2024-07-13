@@ -14,7 +14,7 @@ Timestamp is the preferred methid if we have a reloable timestamp column but we 
 Both methods are covwered below as is incremental modeling. 
 
 **Steps to create an SCD:**
-- **(In Snowflake)** Create a table called mock_orders in your development schema. You will have to replace dbt_kcoapman in the snippet below.
+- **(In Snowflake)** Create a table called mock_orders in your development schema. You will have to replace dbt_jkenney in the snippet below.
 
 ```sql
 CREATE OR REPLACE TRANSIENT TABLE analytics.dbt_jkenney.mock_orders (
@@ -24,7 +24,7 @@ CREATE OR REPLACE TRANSIENT TABLE analytics.dbt_jkenney.mock_orders (
     updated_at date
 );
 ```
-- **(In Snowflake)** Insert values into the mock_orders table in your development schema. You will have to replace dbt_kcoapman in the snippet below.
+- **(In Snowflake)** Insert values into the mock_orders table in your development schema. 
 
 ```sql
 INSERT INTO analytics.dbt_jkenney.mock_orders (order_id, status, created_at, updated_at)
@@ -93,6 +93,9 @@ COMMIT;
 ```sql
 SELECT * FROM analytics.dbt_jkenney_snapshot.mock_orders
 ```
+
+### Create Final Dimension with Timestamp Strategy (this will referece the scd snapshot)
+
 - Now we create the final dimension where we transform the raw(ish) SCD schema to have an is_current flag and fill in NULLS with a future date(way in the future)
  
 Here is how I did this section:
@@ -164,7 +167,7 @@ SELECT * FROM {{ source('jaffle_shop', 'customers') }}
 ```sql 
 SELECT * FROM ANALYTICS.DBT_JKENNEY_SNAPSHOT.SCD_CHECK_CUSTOMERS
 ```
-
+### Create Final Dimension with Check Strategy (this will referece the scd snapshot)
 - Now create the dim table as above with the is current flag as seen below.
 ```sql 
 WITH 
